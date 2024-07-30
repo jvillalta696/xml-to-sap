@@ -1,0 +1,13 @@
+/* Reiniciar fuentes y tamaños */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+/* Fondo gris tenue para el body */
+body {
+  background-color: #f2f2f2;
+}
