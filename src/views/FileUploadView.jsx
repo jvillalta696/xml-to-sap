@@ -19,6 +19,7 @@ import {
   sendDocumentToSAP,
   transformDocument,
 } from "../services/document.service";
+import FileTable from "../components/FileTable";
 //import { extractDataFromXML } from '../libs/Tools';
 
 function FileUploadView() {
@@ -41,9 +42,9 @@ function FileUploadView() {
 
   const handleFileChange = (event) => {
     setJson(null);
-    const selectedFile = event.target.files[0];
-    if (selectedFile && selectedFile.name.endsWith(".xml")) {
-      setFile(selectedFile);
+    const selectedFile = event.target.files;
+    if (selectedFile) {
+      setFile(Array.from(selectedFile));
       setMessage("");
     } else {
       setMessage("Por favor, selecciona un archivo XML.");
@@ -53,9 +54,9 @@ function FileUploadView() {
   const handleFileDrop = (event) => {
     event.preventDefault();
     setJson(null);
-    const selectedFile = event.dataTransfer.files[0];
-    if (selectedFile && selectedFile.name.endsWith(".xml")) {
-      setFile(selectedFile);
+    const selectedFile = event.dataTransfer.files;
+    if (selectedFile) {
+      setFile(Array.from(selectedFile));
       setMessage("");
     } else {
       setMessage("Por favor, selecciona un archivo XML.");
@@ -84,8 +85,13 @@ function FileUploadView() {
     }
   };
 
+  const handleDelete = (fileToDelete) => {
+    setFile((prevFiles) => prevFiles.filter((fl) => fl !== fileToDelete));
+    setJson(null);
+  };
+
   // Función para manejar la subida del archivo
-  const handleFileLoad = async () => {
+  const handleFileLoad = async (fl) => {
     // Verificar si se ha seleccionado un archivo
     if (!file) {
       setMessage("Por favor, selecciona un archivo primero.");
@@ -131,7 +137,7 @@ function FileUploadView() {
     };
 
     // Leer el archivo como texto
-    reader.readAsText(file);
+    reader.readAsText(fl);
   };
 
   return (
@@ -170,6 +176,7 @@ function FileUploadView() {
             variant="outlined"
             fullWidth
             type="file"
+            inputProps={{ accept: ".xml", multiple: true }}
             onChange={handleFileChange}
           />
           <Button
@@ -191,7 +198,19 @@ function FileUploadView() {
             </Alert>
           </Snackbar>
         </Box>
-        {json && <FormDocument json={json} upload={handleFileUpload} />}
+        {file && (
+          <>
+            <Typography>Archivos seleccionados: </Typography>
+            <FileTable
+              onFileView={handleFileLoad}
+              files={file}
+              onFileDelete={handleDelete}
+              onFileSend={handleFileUpload}
+              json={json}
+            />
+          </>
+        )}
+        {/*json && <FormDocument json={json} upload={handleFileUpload} />*/}
       </Container>
     </>
   );
