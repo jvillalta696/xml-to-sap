@@ -30,8 +30,8 @@ export default function SelectLabel({ update }) {
         <MenuItem value="">
           <em>Seleccione una compañia</em>
         </MenuItem>
-        <MenuItem value={"01"}>Ten</MenuItem>
-        <MenuItem value={"02"}>Twenty</MenuItem>
+        <MenuItem value={"01"}>CORIMOTORS</MenuItem>
+        <MenuItem value={"02"}>SMARTCARS</MenuItem>
       </Select>
       <FormHelperText>Seleccione la compañia</FormHelperText>
     </FormControl>
