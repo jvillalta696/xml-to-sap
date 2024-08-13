@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 //import axios from 'axios';
 import "./FileUploadView.css"; // Asegúrate de crear este archivo CSS
 import { createJson, esFactura, extractDataFromXML } from "../libs/Tools";
-import FormDocument from "../components/FormDocument";
 import {
   Alert,
   Box,
@@ -26,12 +25,12 @@ function FileUploadView() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
-  const [json, setJson] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const { db, token, logout } = useAuth();
+  const [jsonList, setJsonList] = useState(null);
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -41,7 +40,7 @@ function FileUploadView() {
   };
 
   const handleFileChange = (event) => {
-    setJson(null);
+    setJsonList(null);
     const selectedFile = event.target.files;
     if (selectedFile) {
       setFile(Array.from(selectedFile));
@@ -53,7 +52,6 @@ function FileUploadView() {
 
   const handleFileDrop = (event) => {
     event.preventDefault();
-    setJson(null);
     const selectedFile = event.dataTransfer.files;
     if (selectedFile) {
       setFile(Array.from(selectedFile));
@@ -63,12 +61,12 @@ function FileUploadView() {
     }
   };
 
-  const handleFileUpload = async () => {
+  const handleFileUpload = async (js) => {
     try {
       setMessage("");
       setError("");
       setLoading(true);
-      const data = transformDocument(db, json.CardCode, json);
+      const data = transformDocument(db, js.CardCode, js);
       console.log(data);
       const response = await sendDocumentToSAP(data, token);
       console.log(response);
@@ -78,71 +76,132 @@ function FileUploadView() {
       setIsError(true);
       setError(error.message);
       console.log(error.message);
+      throw error;
     } finally {
       setLoading(false);
       setOpen(true);
-      setJson(null);
     }
   };
 
   const handleDelete = (fileToDelete) => {
-    setFile((prevFiles) => prevFiles.filter((fl) => fl !== fileToDelete));
-    setJson(null);
+    setJsonList((prevFiles) =>
+      prevFiles.filter((fl) => fl.fileName !== fileToDelete.fileName),
+    );
   };
 
   // Función para manejar la subida del archivo
   const handleFileLoad = async (fl) => {
     // Verificar si se ha seleccionado un archivo
-    if (!file) {
-      setMessage("Por favor, selecciona un archivo primero.");
-      return;
-    }
 
     // Establecer el estado de subida a true
-    setUploading(true);
 
-    // Leer el contenido del archivo
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const xmlContent = e.target.result;
+    const readFileAsText = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+      });
+    };
+
+    try {
+      const xmlContent = await readFileAsText(fl);
 
       // Crear un parser para convertir el contenido en un documento XML
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
       const rootElement = xmlDoc.documentElement;
+
       if (esFactura(rootElement)) {
         // Extraer los datos del XML
         const extractedData = extractDataFromXML(rootElement);
         try {
           // Enviar los datos extraídos al servidor
-          //const response = await axios.post('https://api.example.com/endpoint', extractedData);
+          // const response = await axios.post('https://api.example.com/endpoint', extractedData);
           console.log(extractedData);
           const obj = createJson(extractedData);
-          setJson(obj);
-          console.log(obj);
-          console.log(json);
-          setMessage("¡Archivo cargado exitosamente!");
+          return { data: obj, error: null };
         } catch (error) {
           setMessage("Error al cargar el archivo.");
           console.log(error.message);
-        } finally {
-          // Establecer el estado de subida a false
           setUploading(false);
         }
       } else {
         setUploading(false);
-        setMessage("El documento no es una factura electronica");
-        setJson(null);
+        return {
+          data: null,
+          error: "El documento no es una factura electronica",
+        };
+      }
+    } catch (error) {
+      console.error("Error al leer el archivo:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  useEffect(() => {
+    const listJson = async () => {
+      try {
+        const lsjson = [];
+        for (let i = 0; i < file.length; i++) {
+          const fl = file[i];
+          const readFileAsText = (file) => {
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target.result);
+              reader.onerror = (e) => reject(e);
+              reader.readAsText(file);
+            });
+          };
+          const xmlContent = await readFileAsText(fl);
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+          const rootElement = xmlDoc.documentElement;
+          if (esFactura(rootElement)) {
+            const extractedData = extractDataFromXML(rootElement);
+            try {
+              const obj = createJson(extractedData);
+              lsjson.push({ data: obj, error: null, fileName: fl.name });
+            } catch (error) {
+              console.log(error.message);
+            }
+          } else {
+            lsjson.push({
+              data: null,
+              error: "El documento no es una factura electronica",
+              fileName: fl.name,
+            });
+          }
+        }
+        setJsonList(lsjson);
+      } catch (error) {
+        console.log(error.message);
       }
     };
-
-    // Leer el archivo como texto
-    reader.readAsText(fl);
-  };
+    if (file) {
+      listJson();
+    }
+  }, [file]);
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "end" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          pb: "1rem",
+          bgcolor: "white",
+        }}
+      >
+        <Typography variant="h3" sx={{ ml: 5 }}>
+          {db === "01" ? "CORIMOTORS" : "SMARTCARS"}
+        </Typography>
         <Button
           sx={{ mt: "1rem", mr: "1rem" }}
           variant="contained"
@@ -151,8 +210,13 @@ function FileUploadView() {
         >
           Salir
         </Button>
+        {loading && (
+          <LinearProgress
+            sx={{ zIndex: 1000, position: "fixed", top: 65, left: 0, right: 0 }}
+          />
+        )}
       </Box>
-      {loading && <LinearProgress />}
+
       <Container sx={{ bgcolor: "white", minHeight: "100vh", mt: "1rem" }}>
         <Box
           sx={{
@@ -198,15 +262,14 @@ function FileUploadView() {
             </Alert>
           </Snackbar>
         </Box>
-        {file && (
+        {jsonList && (
           <>
             <Typography>Archivos seleccionados: </Typography>
             <FileTable
               onFileView={handleFileLoad}
-              files={file}
+              files={jsonList}
               onFileDelete={handleDelete}
               onFileSend={handleFileUpload}
-              json={json}
             />
           </>
         )}

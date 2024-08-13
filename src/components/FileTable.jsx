@@ -1,65 +1,69 @@
 import {
-  TableContainer,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
   Button,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import Paper from "@mui/material/Paper";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import PropTypes from "prop-types";
 import FormDocument from "./FormDocument";
 import { useState } from "react";
 
-const FileTable = ({ files, json, onFileView, onFileDelete, onFileSend }) => {
-  // Add 'onFileSend' to the prop validation
-  const [viewingFile, setViewingFile] = useState(null);
-  //const [json, setJson] = useState(null);
+const FileTable = ({ files, onFileDelete, onFileSend }) => {
+  const [expanded, setExpanded] = useState(false);
 
-  const handleView = (file) => {
-    onFileView(file);
-    setViewingFile(file);
-    // Aquí puedes establecer el JSON correspondiente al archivo
-    //setJson(JSON);
+  const handleChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  const handlesender = async (file) => {
+    try {
+      await onFileSend(file);
+      await onFileDelete(file);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableBody>
-          {files.map((file, index) => (
-            <>
-              <TableRow key={index}>
-                <TableCell>{file.name}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleView(file)}>Ver</Button>
-                </TableCell>
-                <TableCell>
-                  <Button onClick={() => onFileDelete(file)}>Eliminar</Button>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => {
-                      onFileSend(file);
-                      onFileDelete(file);
-                    }}
-                  >
-                    Enviar
-                  </Button>
-                </TableCell>
-              </TableRow>
-              {viewingFile === file && json && (
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    <FormDocument json={json} upload={onFileSend} />
-                  </TableCell>
-                </TableRow>
-              )}
-            </>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <div>
+      {files.map((file, index) => (
+        <Accordion
+          key={index}
+          expanded={expanded === `panel${index}`}
+          onChange={handleChange(`panel${index}`)}
+        >
+          <AccordionSummary
+            expandIcon={<ArrowDownwardIcon />}
+            aria-controls={`panel${index}-content`}
+            id={`panel${index}-header`}
+          >
+            <Typography color={file.error ? "error" : "primary"}>
+              {file.fileName}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {file.error ? (
+              <Typography color="error">{file.error}</Typography>
+            ) : (
+              <FormDocument
+                json={file.data}
+                upload={() => handlesender(file.data)}
+              />
+            )}
+          </AccordionDetails>
+          <AccordionDetails>
+            {file.data && (
+              <Button onClick={() => handlesender(file.data)}>Enviar</Button>
+            )}
+            <Button color="warning" onClick={() => onFileDelete(file)}>
+              Eliminar
+            </Button>
+          </AccordionDetails>
+        </Accordion>
+      ))}
+    </div>
   );
 };
 
