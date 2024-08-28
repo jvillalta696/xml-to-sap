@@ -26,6 +26,24 @@ const FileTable = ({ files, onFileDelete, onFileSend }) => {
     }
   };
 
+  const hasError = (file) => {
+    let error = false;
+    if (file.error || file.response?.Estado === "Error") {
+      error = true;
+    }
+    return error;
+  };
+
+  const handleColor = (file) => {
+    if (hasError(file)) {
+      return "error";
+    } else if (file.response) {
+      return "green";
+    } else {
+      return "primary";
+    }
+  };
+
   return (
     <div>
       {files.map((file, index) => (
@@ -39,22 +57,29 @@ const FileTable = ({ files, onFileDelete, onFileSend }) => {
             aria-controls={`panel${index}-content`}
             id={`panel${index}-header`}
           >
-            <Typography color={file.error ? "error" : "primary"}>
-              {file.fileName}
-            </Typography>
+            <Typography color={handleColor(file)}>{file.fileName}</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            {file.error ? (
-              <Typography color="error">{file.error}</Typography>
-            ) : (
+            {hasError(file) && (
+              <Typography color="error">
+                {file.error || file.response?.MsgError}
+              </Typography>
+            )}
+            {!hasError(file) && !file.response && (
               <FormDocument
                 json={file.data}
                 upload={() => handlesender(file.data)}
               />
             )}
+            {!hasError(file) && file.response && (
+              <Typography>
+                El documento {file.fileName} se cargo con exito en SAP DocNum:
+                {file.response.DocNum}
+              </Typography>
+            )}
           </AccordionDetails>
           <AccordionDetails>
-            {file.data && (
+            {!hasError(file) && (
               <Button onClick={() => handlesender(file.data)}>Enviar</Button>
             )}
             <Button color="warning" onClick={() => onFileDelete(file)}>
