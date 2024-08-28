@@ -23,6 +23,28 @@ async function sendDocumentToSAP(documentData, token) {
     }
 }
 
+// Function to send the document data to SAP
+async function sendListDocumentToSAP(documentData, token, db) {
+    try {
+
+        const list = {
+            DBCode: db,
+            PedidosSAP: documentData
+        }
+        const response = await axios.post('https://db.cloud.delserint.com:456/api/ingresarpedido/crearlistaPedidos', list, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
+
 function transformDocument(dbCode, cedula, originalDocument) {
     const transformedDocument = {
         DBCode: dbCode,
@@ -43,4 +65,4 @@ function transformDocument(dbCode, cedula, originalDocument) {
     return transformedDocument;
 }
 
-export { sendDocumentToSAP, transformDocument };
+export { sendDocumentToSAP, transformDocument, sendListDocumentToSAP };
