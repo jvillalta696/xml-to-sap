@@ -16,6 +16,7 @@ import { Logout, Send } from "@mui/icons-material";
 import { useAuth } from "../context/auth.context";
 import {
   sendDocumentToSAP,
+  sendListDocumentToSAP,
   transformDocument,
 } from "../services/document.service";
 import FileTable from "../components/FileTable";
@@ -72,6 +73,43 @@ function FileUploadView() {
       console.log(response);
       setIsError(false);
       setMessage("¡Documento enviado exitosamente!");
+    } catch (error) {
+      setIsError(true);
+      setError(error.message);
+      console.log(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+      setOpen(true);
+    }
+  };
+
+  const handleListFileUpload = async () => {
+    try {
+      const filteredJsonList = jsonList.filter((item) => !item.error);
+      setJsonList(filteredJsonList);
+      setMessage("");
+      setError("");
+      setLoading(true);
+      const data = filteredJsonList.map((js) =>
+        transformDocument(db, js.data.CardCode, js.data),
+      );
+      const response = await sendListDocumentToSAP(data, token, db);
+      // Buscar la respuesta asociada a cada documento del jsonList
+      const updatedJsonList = filteredJsonList.map((js) => {
+        const responseItem = response.find(
+          (item) => item.clave === js.data.Clave,
+        );
+        if (responseItem) {
+          return { ...js, response: responseItem };
+        }
+        return js;
+      });
+      setJsonList(updatedJsonList);
+      setIsError(false);
+      setMessage(
+        "¡Documentos enviados exitosamente! Favor revisar los resultados.",
+      );
     } catch (error) {
       setIsError(true);
       setError(error.message);
@@ -245,11 +283,11 @@ function FileUploadView() {
           />
           <Button
             variant="contained"
-            onClick={handleFileLoad}
+            onClick={handleListFileUpload}
             disabled={uploading}
             startIcon={<Send />}
           >
-            {uploading ? "Cargando..." : "Cargar Archivo"}
+            {uploading ? "Enviando..." : "Envar TODOS los archivos a SAP"}
           </Button>
           {message && <p>{message}</p>}
           <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
