@@ -113,9 +113,15 @@ export const createJson = (doc) => {
  */
 const calculateDueDate = (doc) => {
     if (doc.PlazoCredito) {
-        const docDate = new Date(doc.FechaEmision);
-        const dueDate = new Date(docDate.getTime() + (doc.PlazoCredito * 24 * 60 * 60 * 1000));
-        return dueDate.toISOString().split('T')[0];
+        try {
+
+            const docDate = new Date(doc.FechaEmision);
+            const dueDate = new Date(docDate.getTime() + (parseInt(doc.PlazoCredito, 10) * 24 * 60 * 60 * 1000));
+            console.log(dueDate);
+            return dueDate.toISOString().split('T')[0];
+        } catch (error) {
+            throw new Error('Error al calcular la fecha de vencimiento del documento');
+        }
     } else {
         return doc.FechaEmision.split('T')[0];
     }

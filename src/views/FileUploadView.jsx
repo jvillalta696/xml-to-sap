@@ -91,6 +91,13 @@ function FileUploadView() {
       setMessage("");
       setError("");
       setLoading(true);
+      if (filteredJsonList.length === 0) {
+        setError("No hay documentos válidos para enviar.");
+        setMessage("No hay documentos válidos para enviar.");
+        setIsError(true);
+        setLoading(false);
+        return;
+      }
       const data = filteredJsonList.map((js) =>
         transformDocument(db, js.data.CardCode, js.data),
       );
@@ -202,6 +209,11 @@ function FileUploadView() {
               const obj = createJson(extractedData);
               lsjson.push({ data: obj, error: null, fileName: fl.name });
             } catch (error) {
+              lsjson.push({
+                data: null,
+                error: "Error al cargar el archivo: " + error.message,
+                fileName: fl.name,
+              });
               console.log(error.message);
             }
           } else {
