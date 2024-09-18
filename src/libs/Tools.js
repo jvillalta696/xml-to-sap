@@ -4,15 +4,22 @@
  * @param {Object} doc - El documento a validar.
  * @returns {Object} - Un objeto con la información de la validación.
  */
-export const validaDocumento = (doc) => {
+export const validaDocumento = (doc, bd) => {
     const respuesta = {
         error: false,
         mensaje: ''
     };
-    if (doc.Receptor.Identificacion.Numero !== '112880058') {
+    if (doc.Receptor.Identificacion.Numero !== '3101568373' && bd === '01') {
         respuesta.error = true;
-        respuesta.mensaje += 'El documento debe ser para el cliente con cédula 112880058\r\n';
+        respuesta.mensaje += 'El documento debe ser para "CORI MOTORS DE CENTROAMERICA S.A." \r\n';
+        return respuesta
     }
+    if (doc.Receptor.Identificacion.Numero !== '3101790844' && bd === '02') {
+        respuesta.error = true;
+        respuesta.mensaje += 'El documento debe ser para "SMART CARS SOCIEDAD ANONIMA" \r\n';
+        return respuesta
+    }
+    return respuesta;
 }
 
 /**
