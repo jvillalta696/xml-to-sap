@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 //import axios from 'axios';
 import "./FileUploadView.css"; // Asegúrate de crear este archivo CSS
-import { createJson, esFactura, extractDataFromXML } from "../libs/Tools";
+import {
+  createJson,
+  esFactura,
+  extractDataFromXML,
+  validaDocumento,
+} from "../libs/Tools";
 import {
   Alert,
   Box,
@@ -101,6 +106,7 @@ function FileUploadView() {
       const data = filteredJsonList.map((js) =>
         transformDocument(db, js.data.CardCode, js.data),
       );
+      //onsole.log(data);
       const response = await sendListDocumentToSAP(data, token, db);
       // Buscar la respuesta asociada a cada documento del jsonList
       const updatedJsonList = filteredJsonList.map((js) => {
@@ -164,6 +170,9 @@ function FileUploadView() {
           // Enviar los datos extraídos al servidor
           // const response = await axios.post('https://api.example.com/endpoint', extractedData);
           console.log(extractedData);
+          const res = validaDocumento(extractedData, db);
+          //console.log(res);
+          if (res.error) throw new Error(res.mensaje);
           const obj = createJson(extractedData);
           return { data: obj, error: null };
         } catch (error) {
@@ -206,6 +215,9 @@ function FileUploadView() {
           if (esFactura(rootElement)) {
             const extractedData = extractDataFromXML(rootElement);
             try {
+              const res = validaDocumento(extractedData, db);
+              //console.log(res);
+              if (res.error) throw new Error(res.mensaje);
               const obj = createJson(extractedData);
               lsjson.push({ data: obj, error: null, fileName: fl.name });
             } catch (error) {
@@ -214,7 +226,6 @@ function FileUploadView() {
                 error: "Error al cargar el archivo: " + error.message,
                 fileName: fl.name,
               });
-              console.log(error.message);
             }
           } else {
             lsjson.push({
