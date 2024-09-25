@@ -74,7 +74,7 @@ export const createJson = (doc) => {
         DocDate: doc.FechaEmision.split('T')[0] || null, // Extract the date part only
         DocDueDate: calculateDueDate(doc) || null,
         NumAtCard: doc.NumeroConsecutivo || null,
-        DocCur: doc.ResumenFactura.CodigoTipoMoneda.CodigoMoneda || null,
+        DocCur: doc.ResumenFactura?.CodigoTipoMoneda?.CodigoMoneda.replace('CRC', 'COL') || 'COL',
         Comments: doc.Otros?.OtroTexto || '',
         Detalles: []
     };
