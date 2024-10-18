@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { port } from '../libs/Tools';
 
 // Function to send the document data to SAP
 async function sendDocumentToSAP(documentData, token) {
     try {
-        const response = await axios.post('https://db.cloud.delserint.com:456/api/ingresarpedido/crearPedido', documentData, {
+        const response = await axios.post('https://db.cloud.delserint.com:' + port + '/api/ingresarpedido/crearPedido', documentData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -31,7 +32,7 @@ async function sendListDocumentToSAP(documentData, token, db) {
             DBCode: db,
             PedidosSAP: documentData
         }
-        const response = await axios.post('https://db.cloud.delserint.com:456/api/ingresarpedido/crearlistaPedidos', list, {
+        const response = await axios.post('https://db.cloud.delserint.com:' + port + '/api/ingresarpedido/crearlistaPedidos', list, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -55,10 +56,12 @@ function transformDocument(dbCode, cedula, originalDocument) {
         NumAtCard: originalDocument.NumAtCard,
         DocCur: originalDocument.DocCur,
         Comments: originalDocument.Comments,
+        DiscPrcnt: originalDocument.DiscPrcnt,
         Detalles: originalDocument.Detalles.map(detalle => ({
             ItemDescription: detalle.Description,
             UnitPrice: (parseFloat(detalle.UnitPrice) * parseFloat(detalle.Quantity)).toFixed(6),
-            Rate: parseFloat(detalle.TaxCode)
+            Rate: parseFloat(detalle.TaxCode),
+            DiscPrcnt: detalle.DiscPrcnt
         }))
     };
 

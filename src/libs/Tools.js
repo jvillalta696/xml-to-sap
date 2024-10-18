@@ -67,6 +67,8 @@ export const extractDataFromXML = (node) => {
  * @returns {Object} - El objeto JSON creado.
  */
 export const createJson = (doc) => {
+    const totalDescuento = doc.ResumenFactura?.TotalDescuentos || 0;
+    const totalVenta = doc.ResumenFactura?.TotalVenta || 0;
     const json = {
         Clave: doc.Clave || null,
         CardCode: doc.Emisor?.Identificacion?.Numero || null,
@@ -74,6 +76,7 @@ export const createJson = (doc) => {
         DocDate: doc.FechaEmision.split('T')[0] || null, // Extract the date part only
         DocDueDate: calculateDueDate(doc) || null,
         NumAtCard: doc.NumeroConsecutivo || null,
+        DiscPrcnt: calcularPorcentajeDescuento(totalVenta, totalDescuento),
         DocCur: doc.ResumenFactura?.CodigoTipoMoneda?.CodigoMoneda.replace('CRC', 'COL') || 'COL',
         Comments: doc.Otros?.OtroTexto || '',
         Detalles: []
@@ -81,12 +84,14 @@ export const createJson = (doc) => {
 
     if (Array.isArray(doc.DetalleServicio.LineaDetalle)) {
         for (const detalle of doc.DetalleServicio.LineaDetalle) {
+            /*const precioTotal = (parseFloat(detalle.PrecioUnitario) * parseFloat(detalle.Cantidad)) || 0;
+            const discSum = parseFloat(detalle.Descuento?.MontoDescuento) || 0;*/
             const detalleJson = {
                 LineNum: detalle.NumeroLinea,
                 Description: detalle.Detalle || '',
                 UnitPrice: detalle.PrecioUnitario,
                 Quantity: detalle.Cantidad,
-                DiscPrcnt: detalle.Descuento || "0.00",
+                DiscPrcnt: 0,//(discSum / precioTotal) * 100,
                 TaxCode: detalle.Impuesto ? detalle.Impuesto.Tarifa : "0",
                 VatSum: detalle.Impuesto ? detalle.Impuesto.Monto : "0",
                 LineTotal: detalle.SubTotal,
@@ -95,12 +100,14 @@ export const createJson = (doc) => {
             json.Detalles.push(detalleJson);
         }
     } else if (typeof doc.DetalleServicio.LineaDetalle === 'object') {
+        /*const precioTotal = (parseFloat(doc.DetalleServicio.LineaDetalle.PrecioUnitario) * parseFloat(doc.DetalleServicio.LineaDetalle.Cantidad)) || 0;
+        const discSum = parseFloat(doc.DetalleServicio.LineaDetalle.Descuento?.MontoDescuento) || 0;*/
         const detalleJson = {
             LineNum: doc.DetalleServicio.LineaDetalle.NumeroLinea,
             Description: doc.DetalleServicio.LineaDetalle.Detalle || '',
             UnitPrice: doc.DetalleServicio.LineaDetalle.PrecioUnitario,
             Quantity: doc.DetalleServicio.LineaDetalle.Cantidad,
-            DiscPrcnt: doc.DetalleServicio.LineaDetalle.Descuento || "0.00",
+            DiscPrcnt: 0,//(discSum / precioTotal) * 100,
             TaxCode: doc.DetalleServicio.LineaDetalle.Impuesto ? doc.DetalleServicio.LineaDetalle.Impuesto.Tarifa : "0",
             VatSum: doc.DetalleServicio.LineaDetalle.Impuesto ? doc.DetalleServicio.LineaDetalle.Impuesto.Monto : "0",
             LineTotal: doc.DetalleServicio.LineaDetalle.SubTotal,
@@ -133,3 +140,18 @@ const calculateDueDate = (doc) => {
         return doc.FechaEmision.split('T')[0];
     }
 }
+
+/**
+ * Calcula el porcentaje de descuento de una factura.
+ * @param {number} totalVenta - El total de venta de la factura.
+ * @param {number} descuento - El descuento de la factura.
+ * @returns {number} - El porcentaje de descuento.
+ */
+const calcularPorcentajeDescuento = (totalVenta, descuento) => {
+    if (totalVenta === 0 || totalVenta === null || descuento === null) {
+        return 0;
+    }
+    return (descuento / totalVenta) * 100;
+};
+
+export const port = 458 // Puerto de la API 458 test 456 prod
