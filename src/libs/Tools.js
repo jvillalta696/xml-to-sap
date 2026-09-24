@@ -4,20 +4,21 @@
  * @param {Object} doc - El documento a validar.
  * @returns {Object} - Un objeto con la información de la validación.
  */
-export const validaDocumento = (doc, bd) => {
+export const validaDocumento = (doc, bd, companies) => {
     const respuesta = {
         error: false,
         mensaje: ''
     };
-    if (doc.Receptor.Identificacion.Numero !== '3101568373' && bd === '01') {
+    const company = companies.find(c => c.codedb === bd);
+    if (!company) {
         respuesta.error = true;
-        respuesta.mensaje += 'El documento debe ser para "CORI MOTORS DE CENTROAMERICA S.A." \r\n';
-        return respuesta
+        respuesta.mensaje = 'Configuración de compañía inválida. No se encontró la compañía activa en el catálogo.';
+        return respuesta;
     }
-    if (doc.Receptor.Identificacion.Numero !== '3101790844' && bd === '02') {
+    if (doc.Receptor.Identificacion.Numero !== company.identificacion) {
         respuesta.error = true;
-        respuesta.mensaje += 'El documento debe ser para "SMART CARS SOCIEDAD ANONIMA" \r\n';
-        return respuesta
+        respuesta.mensaje = `El documento debe ser para "${company.name}" \r\n`;
+        return respuesta;
     }
     return respuesta;
 }
@@ -154,4 +155,4 @@ const calcularPorcentajeDescuento = (totalVenta, descuento) => {
     return (descuento / totalVenta) * 100;
 };
 
-export const port = 458 // Puerto de la API 458 test 456 prod
+export const port = 456// Puerto de la API 458 test 456 prod

@@ -1,19 +1,21 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import userService from "../services/user.service";
-// Crear el contexto
+import { getCompanies } from "../services/company.service";
+
 const AuthContext = createContext();
 
-// Crear un hook para usar el contexto
 const useAuth = () => {
   return useContext(AuthContext);
 };
 
-// Crear el proveedor del contexto
 // eslint-disable-next-line react/prop-types
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(sessionStorage.getItem("authToken"));
   const [db, setDb] = useState(sessionStorage.getItem("db"));
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
+  const [companiesError, setCompaniesError] = useState(null);
 
   useEffect(() => {
     const storedToken = sessionStorage.getItem("authToken");
@@ -23,6 +25,21 @@ const AuthProvider = ({ children }) => {
       setDb(storedDb);
     }
   }, [token]);
+
+  useEffect(() => {
+    const loadCompanies = async () => {
+      try {
+        const data = await getCompanies();
+        console.log("Companies loaded:", data);
+        setCompanies(data);
+      } catch (error) {
+        setCompaniesError("No se pudo cargar la lista de compañías. Intente recargar la página.");
+      } finally {
+        setCompaniesLoading(false);
+      }
+    };
+    loadCompanies();
+  }, []);
 
   const login = async (userData) => {
     try {
@@ -51,7 +68,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, db, token, login, logout, isAuthenticated }}
+      value={{ user, db, token, companies, companiesLoading, companiesError, login, logout, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

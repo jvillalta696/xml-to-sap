@@ -35,7 +35,7 @@ function FileUploadView() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
-  const { db, token, logout } = useAuth();
+  const { db, token, logout, companies } = useAuth();
   const [jsonList, setJsonList] = useState(null);
 
   const handleClose = (event, reason) => {
@@ -170,7 +170,7 @@ function FileUploadView() {
           // Enviar los datos extraídos al servidor
           // const response = await axios.post('https://api.example.com/endpoint', extractedData);
           console.log(extractedData);
-          const res = validaDocumento(extractedData, db);
+          const res = validaDocumento(extractedData, db, companies);
           //console.log(res);
           if (res.error) throw new Error(res.mensaje);
           const obj = createJson(extractedData);
@@ -215,7 +215,7 @@ function FileUploadView() {
           if (esFactura(rootElement)) {
             const extractedData = extractDataFromXML(rootElement);
             try {
-              const res = validaDocumento(extractedData, db);
+              const res = validaDocumento(extractedData, db, companies);
               //console.log(res);
               if (res.error) throw new Error(res.mensaje);
               const obj = createJson(extractedData);
@@ -261,7 +261,7 @@ function FileUploadView() {
         }}
       >
         <Typography variant="h3" sx={{ ml: 5 }}>
-          {db === "01" ? "CORIMOTORS" : "SMARTCARS"}
+          {companies.find(c => c.codedb === db)?.name ?? db}
         </Typography>
         <Button
           sx={{ mt: "1rem", mr: "1rem" }}
