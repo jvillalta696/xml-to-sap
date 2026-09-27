@@ -155,4 +155,5 @@ const calcularPorcentajeDescuento = (totalVenta, descuento) => {
     return (descuento / totalVenta) * 100;
 };
 
-export const port = 456// Puerto de la API 458 test 456 prod
+export const port = 456; // 458 test | 456 prod
+export const baseUrl = 'https://db.cloud.delserint.com:' + port;

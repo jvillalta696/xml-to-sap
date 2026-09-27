@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { port } from '../libs/Tools';
+import { baseUrl } from '../libs/Tools';
 
 export const getCompanies = async () => {
-    const response = await axios.get('https://db.cloud.delserint.com:' + port + '/api/companias');
+    const response = await axios.get(baseUrl + '/api/companias');
     return response.data;
 };
