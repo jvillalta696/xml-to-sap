@@ -10,17 +10,17 @@ async function sendDocumentToSAP(documentData, token) {
             }
         });
 
-        if (response.status === 201) {
-            if (response.data.Estado === 'Error') {
-                throw new Error(response.data.MsgError);
-            }
+        if (response.data.Estado === 'Error') {
+            throw new Error(response.data.MsgError);
         }
 
         console.log(response.data);
         return response.data;
     } catch (error) {
-        console.error(error.message);
-        throw error;
+        const businessError = error.response?.data?.MsgError;
+        const message = businessError ?? error.message;
+        console.error(message);
+        throw new Error(message);
     }
 }
 
