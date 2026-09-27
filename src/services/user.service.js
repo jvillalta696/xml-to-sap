@@ -5,7 +5,7 @@ const userService = {
     login: async (data) => {
         try {
             const response = await axios.post(baseUrl + '/api/login/authenticate', {
-                Username: data.user,
+                Username: data.Username,
                 Password: data.password,
                 CodeDB: data.company,
             });
