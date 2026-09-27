@@ -15,7 +15,7 @@ export const validaDocumento = (doc, bd, companies) => {
         respuesta.mensaje = 'Configuración de compañía inválida. No se encontró la compañía activa en el catálogo.';
         return respuesta;
     }
-    if (doc.Receptor.Identificacion.Numero !== company.identificacion) {
+    if (doc.Receptor.Identificacion.Numero !== company.id) {
         respuesta.error = true;
         respuesta.mensaje = `El documento debe ser para "${company.name}" \r\n`;
         return respuesta;
