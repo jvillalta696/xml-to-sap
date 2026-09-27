@@ -4,6 +4,6 @@ import mockCompanies from '../mocks/companies.mock.json';
 
 export const getCompanies = async () => {
     return mockCompanies; // local mock — comment out and uncomment below for production
-    // const response = await axios.get('https://db.cloud.delserint.com:' + port + '/api/companies');
+    // const response = await axios.get('https://db.cloud.delserint.com:' + port + '/api/companias');
     // return response.data.map(c => ({ codedb: c.codedb, name: c.name, identificacion: c.id }));
 };
