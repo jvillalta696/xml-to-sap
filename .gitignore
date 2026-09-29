@@ -17,6 +17,11 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Tool-generated directories
+.claude/
+.firebase/
+.playwright-mcp/
 *.suo
 *.ntvs*
 *.njsproj
