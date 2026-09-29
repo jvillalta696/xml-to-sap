@@ -33,7 +33,7 @@ const LoginForm = () => {
       event.preventDefault();
       const data = new FormData(event.currentTarget);
       const usr = {
-        user: data.get("email"),
+        Username: data.get("email"),
         password: data.get("password"),
         company: company,
       };

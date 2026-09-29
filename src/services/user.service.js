@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { port } from '../libs/Tools';
+import { baseUrl } from '../libs/Tools';
 
 const userService = {
     login: async (data) => {
         try {
-            const response = await axios.post('https://db.cloud.delserint.com:' + port + '/api/login/authenticate', {
-                Username: data.user,
+            const response = await axios.post(baseUrl + '/api/login/authenticate', {
+                Username: data.Username,
                 Password: data.password,
                 CodeDB: data.company,
             });

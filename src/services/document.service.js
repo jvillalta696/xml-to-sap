@@ -1,26 +1,27 @@
 import axios from 'axios';
-import { port } from '../libs/Tools';
+import { baseUrl } from '../libs/Tools';
 
 // Function to send the document data to SAP
 async function sendDocumentToSAP(documentData, token) {
     try {
-        const response = await axios.post('https://db.cloud.delserint.com:' + port + '/api/ingresarpedido/crearPedido', documentData, {
+        const response = await axios.post(baseUrl + '/api/ingresarpedido/crearPedido', documentData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
 
-        if (response.status === 201) {
-            if (response.data.Estado === 'Error') {
-                throw new Error(response.data.MsgError);
-            }
+        if (response.data.Estado === 'Error') {
+            throw new Error(response.data.MsgError);
         }
 
         console.log(response.data);
         return response.data;
     } catch (error) {
-        console.error(error.message);
-        throw error;
+        const responseData = error.response?.data;
+        const businessError = responseData?.MsgError ?? (typeof responseData === 'string' ? responseData : null);
+        const message = businessError ?? error.message;
+        console.error(message);
+        throw new Error(message);
     }
 }
 
@@ -32,7 +33,7 @@ async function sendListDocumentToSAP(documentData, token, db) {
             DBCode: db,
             PedidosSAP: documentData
         }
-        const response = await axios.post('https://db.cloud.delserint.com:' + port + '/api/ingresarpedido/crearlistaPedidos', list, {
+        const response = await axios.post(baseUrl + '/api/ingresarpedido/crearlistaPedidos', list, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -41,8 +42,11 @@ async function sendListDocumentToSAP(documentData, token, db) {
         console.log(response.data);
         return response.data;
     } catch (error) {
-        console.error(error.message);
-        throw error;
+        const responseData = error.response?.data;
+        const businessError = responseData?.MsgError ?? (typeof responseData === 'string' ? responseData : null);
+        const message = businessError ?? error.message;
+        console.error(message);
+        throw new Error(message);
     }
 }
 
