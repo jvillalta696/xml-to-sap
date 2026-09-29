@@ -17,7 +17,8 @@ async function sendDocumentToSAP(documentData, token) {
         console.log(response.data);
         return response.data;
     } catch (error) {
-        const businessError = error.response?.data?.MsgError;
+        const responseData = error.response?.data;
+        const businessError = responseData?.MsgError ?? (typeof responseData === 'string' ? responseData : null);
         const message = businessError ?? error.message;
         console.error(message);
         throw new Error(message);
@@ -41,8 +42,11 @@ async function sendListDocumentToSAP(documentData, token, db) {
         console.log(response.data);
         return response.data;
     } catch (error) {
-        console.error(error.message);
-        throw error;
+        const responseData = error.response?.data;
+        const businessError = responseData?.MsgError ?? (typeof responseData === 'string' ? responseData : null);
+        const message = businessError ?? error.message;
+        console.error(message);
+        throw new Error(message);
     }
 }
 

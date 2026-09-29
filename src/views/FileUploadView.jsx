@@ -119,10 +119,14 @@ function FileUploadView() {
         return js;
       });
       setJsonList(updatedJsonList);
-      setIsError(false);
-      setMessage(
-        "¡Documentos enviados exitosamente! Favor revisar los resultados.",
-      );
+      const hasErrors = updatedJsonList.some((js) => js.response?.Estado === 'Error');
+      if (hasErrors) {
+        setIsError(true);
+        setError("Algunos documentos tuvieron errores. Favor revisar los resultados.");
+      } else {
+        setIsError(false);
+        setMessage("¡Documentos enviados exitosamente! Favor revisar los resultados.");
+      }
     } catch (error) {
       setIsError(true);
       setError(error.message);
